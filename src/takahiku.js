@@ -5,6 +5,8 @@ const sqlite = require('sqlite')
 
 class Takahiku {
   constructor(options) {
+    if (typeof options.headless !== 'undefined') this.headless = options.headless
+    else this.headless = true
     this.terms = [
 
     ]
@@ -65,9 +67,9 @@ class Takahiku {
     return keyword.slice(1, -1)
   }
 
-  async _createSession() {
+  async _createSession(headless = this.headless) {
     try {
-      this.browser = await puppeteer.launch({headless: false})
+      this.browser = await puppeteer.launch({headless: headless})
       this.page = await this.browser.newPage()
       await this.page.goto('http://www.higherlowergame.com/')
     } catch (err) {
@@ -225,7 +227,7 @@ class Takahiku {
           await this._pickLower()
         }
       }
-      await delay(SECOND * 5)
+      await delay(SECOND * 3.5)
       return true
     } catch (err) {
       console.error(err)
@@ -247,15 +249,21 @@ class Takahiku {
     else return false
   }
 
-  async _playGame(verbose=false) {
+  async _playGame(verbose = false, playAgain = false) {
     await this._playRound(verbose)
     if (await this._checkForGameOver()) {
       await this._printProgress(true)
       console.error('Uwu we made a fucky wucky. Trying again!')
+      if (playAgain && !await this._checkForAd()) {
+        await this._playAgain()
+        await delay(SECOND)
+        await this._playGame(verbose, playAgain)
+        return false
+      }
       await this._closeSession()
       return false
     } else {
-      await this._playGame(verbose)
+      await this._playGame(verbose, playAgain)
     }
 
 
@@ -306,7 +314,7 @@ class Takahiku {
         await delay(SECOND * 2)
         await this._startClassicGame()
         await delay(SECOND)
-        await this._playGame()
+        await this._playGame(false, true)
       }
     }
   }
@@ -322,7 +330,9 @@ let term = {
   score: 0
 }
 let test = async () => {
-  let taka = new Takahiku()
+  let taka = new Takahiku({
+    headless: false
+  })
   taka._connectToDatabase('2017').then(async () => {
     taka.learn()
     // await taka._createSession()
