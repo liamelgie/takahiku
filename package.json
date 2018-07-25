@@ -1,10 +1,14 @@
 {
   "name": "takahiku",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Automated bot for the browser-based version of \"The Higher Lower Game\"",
   "main": "lib/takahiku.js",
+  "bin": {
+    "takahiku": "bin/takahiku.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -d lib && cp src/db/* lib/db/"
   },
   "keywords": [
     "bot",
@@ -12,11 +16,22 @@
     "game",
     "the higher lower game"
   ],
+  "preferGlobal": true,
   "author": "Liam Elgie",
   "license": "MIT",
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "caporal": "^0.10.0",
     "delay": "^3.0.0",
+    "figlet": "^1.2.0",
     "puppeteer": "^1.6.0",
-    "sqlite": "^2.9.2",
-  }
+    "sqlite": "^2.9.2"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.7.0"
+  },
+  "files": [
+    "lib/*"
+  ]
 }
