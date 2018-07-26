@@ -1,7 +1,8 @@
 require("babel-polyfill")
 const puppeteer = require('puppeteer')
 const delay = require('delay')
-const sqlite = require('sqlite')
+// const sqlite = require('sqlite')
+const Database = require('better-sqlite3')
 const readline = require('readline')
 
 class Takahiku {
@@ -26,7 +27,7 @@ class Takahiku {
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
       process.stdout.write(`📖  Connecting to the database...`)
-      this.db = await sqlite.open(`${__dirname}/db/${database}.db`, { Promise })
+      this.db = new Database(`${__dirname}/db/${database}.db`)
     } catch (err) {
       console.error(`❌  Could not connect to the specified database (${database}). The following error was encountered:`)
       console.error(err)
@@ -40,11 +41,7 @@ class Takahiku {
         console.error(`❌  Refusing addition of ${keyword.keyword} to the database due to invalid score (score of 0)`)
         throw new Error('Term contains invalid score (0)')
       }
-      const sql = 'INSERT INTO dictionary VALUES ($keyword, $score)'
-      await this.db.run(sql, {
-        $keyword: term.keyword,
-        $score: term.score
-      })
+      let stmt = this.db.prepare('INSERT INTO dictionary VALUES (?, ?)').run(term.keyword, term.score)
       return true
     } catch (err) {
       console.log(`❌  Could not add ${term.keyword} to the database due to the following error:`)
@@ -59,8 +56,7 @@ class Takahiku {
       if (!this.db) {
         throw new Error("No database connection could be established")
       }
-      const sql = 'SELECT * FROM dictionary WHERE keyword = $keyword'
-      let retrievedTerm = await this.db.get(sql, { $keyword: term.keyword })
+      let retrievedTerm = this.db.prepare('SELECT * FROM dictionary WHERE keyword = ?').get(term.keyword)
       if (!retrievedTerm) {
         return false
       }
@@ -356,7 +352,7 @@ class Takahiku {
       } else {
         await this._printProgress(true)
         if (this.closeOnGameOver) await this._closeSession()
-        this._createExitPrompt()
+        if (!this.trainingMode) this._createExitPrompt()
         return true
       }
       return false
@@ -367,8 +363,7 @@ class Takahiku {
 
   async _getTermCountFromDatabase() {
     try {
-      const sql = 'SELECT * FROM dictionary'
-      let terms = await this.db.all(sql)
+      let terms = this.db.prepare('SELECT * FROM dictionary').all()
       return terms.length
     } catch (err) {
       console.error(`❌  Could not get terms from the database because of the following error:`)
