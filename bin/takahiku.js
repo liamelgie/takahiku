@@ -22,6 +22,7 @@ prog
   .option('--headless', 'Runs Chromium in headless mode')
   .option('--continuous', 'Starts a new game upon game over')
   .option('--share', 'Keeps the window open upon game over so the share functions can be used')
+  .option('--emojiless', 'Removes the use of emojis when logging to the console')
   .action(function(args, options, logger) {
     let launch = async () => {
       let taka = new Takahiku({
@@ -30,7 +31,8 @@ prog
         verbose: options.verbose ? true : false,
         continuous: options.continuous ? true : false,
         closeOnGameOver: options.share ? false : true,
-        trainingMode: options.train ? true : false
+        trainingMode: options.train ? true : false,
+        emojiless: options.emojiless ? true : false
       })
       printLogo()
       taka._connectToDatabase(options.db ? options.db : '2017').then(async () => {

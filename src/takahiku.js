@@ -24,6 +24,8 @@ class Takahiku {
     else this.trainingMode = false
     if (typeof options.db !== 'undefined') this.dbName = options.db
     else this.dbName = '2017'
+    if (typeof options.emojiless !== 'undefined') this.emojiless = options.emojiless
+    else this.emojiless = false
     this.terms = []
   }
 
@@ -31,10 +33,10 @@ class Takahiku {
     try {
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
-      process.stdout.write(`📖  Connecting to the database...`)
+      process.stdout.write(`${this.emojiless ? '' : '📖  '}Connecting to the database...`)
       this.db = dblite(`${__dirname}/db/${this.dbName}.db`)
     } catch (err) {
-      console.error(`❌  Could not connect to the specified database (${database}). The following error was encountered:`)
+      console.error(`${this.emojiless ? '' : '❌  '}Could not connect to the specified database (${database}). The following error was encountered:`)
       console.error(err)
       return false
     }
@@ -43,7 +45,7 @@ class Takahiku {
   async _addTermToDatabase(term) {
     try {
       if (term.score === '0') {
-        console.error(`❌  Refusing addition of ${keyword.keyword} to the database due to invalid score (score of 0)`)
+        console.error(`${this.emojiless ? '' : '❌  '}Refusing addition of ${keyword.keyword} to the database due to invalid score (score of 0)`)
         throw new Error('Term contains invalid score (0)')
       }
       return new Promise(function(resolve, reject) {
@@ -53,7 +55,7 @@ class Takahiku {
         })
       }.bind(this))
     } catch (err) {
-      console.log(`❌  Could not add ${term.keyword} to the database due to the following error:`)
+      console.log(`${this.emojiless ? '' : '❌  '}Could not add ${term.keyword} to the database due to the following error:`)
       console.log(err)
       return false
     }
@@ -75,7 +77,7 @@ class Takahiku {
         })
       }.bind(this))
     } catch (err) {
-      console.error(`❌  Could not get ${term.keyword} from the database because of the following error:`)
+      console.error(`${this.emojiless ? '' : '❌  '}Could not get ${term.keyword} from the database because of the following error:`)
       console.error(err)
     }
   }
@@ -92,7 +94,7 @@ class Takahiku {
     try {
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
-      process.stdout.write(`📡  Launching http://www.higherlowergame.com/...`)
+      process.stdout.write(`${this.emojiless ? '' : '📡  '}Launching http://www.higherlowergame.com/...`)
       this.browser = await puppeteer.launch({
         headless: headless,  args: [`--window-size=800,720`]
       })
@@ -108,11 +110,11 @@ class Takahiku {
     try {
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
-      process.stdout.write(`⏳  Starting game...`)
+      process.stdout.write(`${this.emojiless ? '' : '⏳  '}Starting game...`)
       await this.page.click('button.game-button:nth-child(1)')
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
-      process.stdout.write(`🍀  Ready to go. Good luck! \n`)
+      process.stdout.write(`${this.emojiless ? '' : '🍀  '}Ready to go. Good luck! \n`)
       return true
     } catch (err) {
       console.error(err)
@@ -207,14 +209,14 @@ class Takahiku {
 
   async _pickCorrectAnswer() {
     if (parseInt(this.terms[1].score) === 0) {
-      if (this.verbose) console.error(`🤞🏼  Could not find term within the dictionary. Picking higher for luck...`)
+      if (this.verbose) console.error(`${this.emojiless ? '' : '🤞🏼  '}Could not find term within the dictionary. Picking higher for luck...`)
       await this._pickHigher()
     } else {
       if (parseInt(this.terms[0].score) < parseInt(this.terms[1].score)) {
-        if (this.verbose) console.log(`🔼  ${this.terms[0].keyword} has a lower score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking higher!`)
+        if (this.verbose) console.log(`${this.emojiless ? '' : '🔼  '}${this.terms[0].keyword} has a lower score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking higher!`)
         await this._pickHigher()
       } else {
-        if (this.verbose) console.log(`🔽  ${this.terms[0].keyword} has a higher score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking lower!`)
+        if (this.verbose) console.log(`${this.emojiless ? '' : '🔽  '}${this.terms[0].keyword} has a higher score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking lower!`)
         await this._pickLower()
       }
     }
@@ -226,10 +228,10 @@ class Takahiku {
       await this._pickHigher()
     } else {
       if (parseInt(this.terms[0].score) < parseInt(this.terms[1].score)) {
-        if (this.verbose) console.log(`🔼  ${this.terms[0].keyword} has a lower score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking lower to lose!`)
+        if (this.verbose) console.log(`${this.emojiless ? '' : '🔼  '}${this.terms[0].keyword} has a lower score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking lower to lose!`)
         await this._pickLower()
       } else {
-        if (this.verbose) console.log(`🔽  ${this.terms[0].keyword} has a higher score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking higher to lose!`)
+        if (this.verbose) console.log(`${this.emojiless ? '' : '🔽  '}${this.terms[0].keyword} has a higher score of ${this.terms[0].score} to ${this.terms[1].keyword}'s ${this.terms[1].score}. Picking higher to lose!`)
         await this._pickHigher()
       }
     }
@@ -280,17 +282,17 @@ class Takahiku {
       if (gameOver) {
         if (await this._getScore(true) >= this.targetScore) {
           process.stdout.cursorTo(0)
-          process.stdout.write(`🎊  Game over! You reached your target and finished with a score of ${await this._getScore(true)}`)
+          process.stdout.write(`${this.emojiless ? '' : '🎊  '}Game over! You reached your target and finished with a score of ${await this._getScore(true)}`)
           process.stdout.write('\n')
           return true
         }
         process.stdout.cursorTo(0)
-        process.stdout.write(`🎊  Game over! You finished with a score of ${await this._getScore(true)} `)
+        process.stdout.write(`${this.emojiless ? '' : '🎊  '}Game over! You finished with a score of ${await this._getScore(true)} `)
         process.stdout.write('\n')
         return true
       }
       process.stdout.cursorTo(0)
-      process.stdout.write(`🤖  Playing... Progress: ${await this._getProgressBar(await this._getPercentageTowardsTarget())} Score: ${await this._getScore()} / ${this.targetScore}`)
+      process.stdout.write(`${this.emojiless ? '' : '🤖  '}Playing... Progress: ${await this._getProgressBar(await this._getPercentageTowardsTarget())} Score: ${await this._getScore()} / ${this.targetScore}`)
       return true
     } catch (err) {
       console.error(err)
@@ -304,7 +306,7 @@ class Takahiku {
       await this._getTerms()
       const doesTermExist = await this._getTermFromDatabase(this.terms[0])
       if (!doesTermExist) {
-        if (this.verbose) console.log(`✏️  ${this.terms[0].keyword} is not present in the dictionary. Adding it...`)
+        if (this.verbose) console.log(`${this.emojiless ? '' : '✏️  '}${this.terms[0].keyword} is not present in the dictionary. Adding it...`)
         await this._addTermToDatabase(this.terms[0])
       }
       if (await this._checkTargetScore()) await this._pickIncorrectAnswer()
@@ -325,7 +327,7 @@ class Takahiku {
         await delay(SECOND)
         readline.clearLine(process.stdout, 0)
         readline.cursorTo(process.stdout, 0)
-        process.stdout.write(`💰  Ad detected. Waiting ${timeRemaining} seconds for it to expire...`)
+        process.stdout.write(`${this.emojiless ? '' : '💰  '}Ad detected. Waiting ${timeRemaining} seconds for it to expire...`)
         timeRemaining -= 1
       }
       readline.clearLine(process.stdout, 0)
@@ -347,7 +349,7 @@ class Takahiku {
   }
 
   _createExitPrompt() {
-    console.log('👋  All done? Press Enter / Return to exit')
+    console.log(`${this.emojiless ? '' : '👋  '}All done? Press Enter / Return to exit`)
     process.stdin.on('data', process.exit.bind(process, 0))
   }
 
@@ -357,7 +359,7 @@ class Takahiku {
       await delay(SECOND)
       if (this.continuous) {
         await this._printProgress(true)
-        console.log('🔁  Continuous mode enabled. Next!')
+        console.log(`${this.emojiless ? '' : '🔁  '}Continuous mode enabled. Next!`)
         await this._playAgain()
         await delay(SECOND)
         await this._playGame()
@@ -383,7 +385,7 @@ class Takahiku {
         })
       }.bind(this))
     } catch (err) {
-      console.error(`❌  Could not get terms from the database because of the following error:`)
+      console.error(`${this.emojiless ? '' : '❌  '}Could not get terms from the database because of the following error:`)
       console.error(err)
       return false
     }
@@ -397,7 +399,7 @@ class Takahiku {
         await delay(SECOND * 2)
         await this._startClassicGame()
         await delay(SECOND)
-        console.log(`🏫  Attempting to learn new terms via trial and error. The current term count is ${await this._getTermCountFromDatabase()}`)
+        console.log(`${this.emojiless ? '' : '🏫  '}Attempting to learn new terms via trial and error. The current term count is ${await this._getTermCountFromDatabase()}`)
         await this._playGame()
       }
     }
