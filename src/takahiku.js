@@ -1,8 +1,8 @@
 require("babel-polyfill")
+const fs = require('fs')
 const puppeteer = require('puppeteer')
 const delay = require('delay')
-// const sqlite = require('sqlite')
-const Database = require('better-sqlite3')
+const dblite = require('dblite')
 const readline = require('readline')
 
 class Takahiku {
@@ -19,15 +19,17 @@ class Takahiku {
     else this.closeOnGameOver = false
     if (typeof options.trainingMode !== 'undefined') this.trainingMode = options.trainingMode
     else this.trainingMode = false
+    if (typeof options.db !== 'undefined') this.dbName = options.db
+    else this.dbName = '2017'
     this.terms = []
   }
 
-  async _connectToDatabase(database) {
+  async _connectToDatabase() {
     try {
       readline.clearLine(process.stdout, 0)
       readline.cursorTo(process.stdout, 0)
       process.stdout.write(`📖  Connecting to the database...`)
-      this.db = new Database(`${__dirname}/db/${database}.db`)
+      this.db = dblite(`${__dirname}/db/${this.dbName}.db`)
     } catch (err) {
       console.error(`❌  Could not connect to the specified database (${database}). The following error was encountered:`)
       console.error(err)
@@ -41,8 +43,12 @@ class Takahiku {
         console.error(`❌  Refusing addition of ${keyword.keyword} to the database due to invalid score (score of 0)`)
         throw new Error('Term contains invalid score (0)')
       }
-      let stmt = this.db.prepare('INSERT INTO dictionary VALUES (?, ?)').run(term.keyword, term.score)
-      return true
+      return new Promise(function(resolve, reject) {
+        this.db.query('INSERT INTO dictionary VALUES (?, ?)', [term.keyword, term.score], (err, rows) => {
+          if (err) reject(err)
+          else resolve()
+        })
+      }.bind(this))
     } catch (err) {
       console.log(`❌  Could not add ${term.keyword} to the database due to the following error:`)
       console.log(err)
@@ -56,11 +62,15 @@ class Takahiku {
       if (!this.db) {
         throw new Error("No database connection could be established")
       }
-      let retrievedTerm = this.db.prepare('SELECT * FROM dictionary WHERE keyword = ?').get(term.keyword)
-      if (!retrievedTerm) {
-        return false
-      }
-      return retrievedTerm
+      return new Promise(function(resolve, reject) {
+        this.db.query('SELECT * FROM dictionary WHERE keyword = ?', [term.keyword], ['keyword', 'score'], (err, rows) => {
+          if (err) reject(err)
+          if (!rows[0]) {
+            return false
+          }
+          resolve(rows[0])
+        })
+      }.bind(this))
     } catch (err) {
       console.error(`❌  Could not get ${term.keyword} from the database because of the following error:`)
       console.error(err)
@@ -363,8 +373,12 @@ class Takahiku {
 
   async _getTermCountFromDatabase() {
     try {
-      let terms = this.db.prepare('SELECT * FROM dictionary').all()
-      return terms.length
+      return new Promise(function(resolve, reject) {
+        let terms = this.db.query('SELECT * FROM dictionary', (err, rows) => {
+          if (err) reject(err)
+          resolve(rows.length)
+        })
+      }.bind(this))
     } catch (err) {
       console.error(`❌  Could not get terms from the database because of the following error:`)
       console.error(err)
