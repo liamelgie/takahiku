@@ -27,6 +27,12 @@ class Takahiku {
     if (typeof options.emojiless !== 'undefined') this.emojiless = options.emojiless
     else this.emojiless = false
     this.terms = []
+    // Catch SIGINT to ensure that console output is pushed to a new line
+    // This prevents issues that cause input after SIGINT to overlap with previous outputs
+    process.stdin.resume()
+    process.on('SIGINT', () => {
+      console.log()
+    })
   }
 
   async _connectToDatabase() {
@@ -392,17 +398,14 @@ class Takahiku {
   }
 
   async train() {
-    while (true) {
-      this.targetScore = 9999999999
-      if (!this.browser) {
-        await this._createSession()
-        await delay(SECOND * 2)
-        await this._startClassicGame()
-        await delay(SECOND)
-        console.log(`${this.emojiless ? '' : '🏫  '}Attempting to learn new terms via trial and error. The current term count is ${await this._getTermCountFromDatabase()}`)
-        await this._playGame()
-      }
-    }
+    this.targetScore = 9999999999
+    this.continuous = true
+    await this._createSession()
+    await delay(SECOND * 2)
+    await this._startClassicGame()
+    await delay(SECOND * 2)
+    console.log(`${this.emojiless ? '' : '🏫  '}Attempting to learn new terms via trial and error. The current term count is ${await this._getTermCountFromDatabase()}`)
+    await this._playGame()
   }
 
   async start() {
