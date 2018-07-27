@@ -3,6 +3,9 @@ const fs = require('fs')
 const puppeteer = require('puppeteer')
 const delay = require('delay')
 const dblite = require('dblite')
+if (process.platform === "win32") {
+  dblite.bin = `${__dirname}/drivers/sqlite3.exe`
+}
 const readline = require('readline')
 
 class Takahiku {
