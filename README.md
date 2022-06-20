@@ -7,10 +7,10 @@ Automated bot for the browser-based version of ["The Higher Lower Game"](http://
 Install [Takahiku](https://www.npmjs.com/package/takahiku) via npm by doing the following:
 
 ````
-npm i -g takahiku
+npm i -g takahiku --unsafe-perm=true
 ````
 
-Note: Takahiku is dependent on Puppeteer which will download a version of Chromium for your platform upon installation (~170Mb Mac, ~282Mb Linux, ~280Mb Win)
+Note: Takahiku is dependent on Puppeteer which will download a version of Chromium for your platform upon installation (~170Mb Mac, ~282Mb Linux, ~280Mb Win). Takahiku is also dependent on sqlite3 which can be installed via your package manager.
 
 Don't have node/npm installed? Get it [here](https://nodejs.org/en/)
 
